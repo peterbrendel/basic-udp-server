@@ -2,6 +2,10 @@
 #include <queue>
 #include <unordered_map>
 #include <memory>
+#include <thread>
+#include <iomanip>
+#include <syncstream>
+#include <mutex>
 
 namespace Core {
     class Worker {

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+CMAKE_BUILD_TYPE="Debug"
+
+for arg in "$@"
+do
+    if [[ "$arg" == "release" ]]; then
+        CMAKE_BUILD_TYPE="Release"
+    fi
+
+    if [[ "$arg" == "clean" ]]; then
+        rm -r build
+    fi
+done
+
+if [ ! -d "build/${CMAKE_BUILD_TYPE}" ]; then
+    cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -S . -B build
+fi
+
+cmake --build build
+
+if [ $? -ne 0 ]; then
+    echo "Build failed"
+    exit 1
+fi
+
+echo "Build succeeded"

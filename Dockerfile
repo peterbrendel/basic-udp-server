@@ -1,23 +1,30 @@
-# basic dockerfile to run this C++ project with CMake
-FROM ubuntu:20.04
-# Set the working directory
-WORKDIR /app
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    cmake
+FROM alpine:latest AS builder
 
-# Copy the source code into the container
-COPY . /app
-# Create a build directory
-RUN mkdir build
-# Change to the build directory
-WORKDIR /app/build
-# Run CMake to configure the project
-RUN cmake ..
-# Build the project
-RUN make
-# Set the entry point to run the executable
-ENTRYPOINT ["./sparz -"]
-    
+# Install build dependencies
+RUN apk add --no-cache \
+    alpine-sdk \
+    cmake \
+    git \
+    libstdc++
+
+WORKDIR /app
+
+COPY . .
+
+RUN chmod +x ./compile && ./compile clean release
+
+##             ##
+# Runtime image #
+##             ##
+
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    libstdc++
+
+WORKDIR /app
+
+COPY --from=builder /app/build/Release/sparz ./sparz
+
+# ENTRYPOINT ["./sparz"]

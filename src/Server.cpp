@@ -85,16 +85,17 @@ namespace Core {
             }
 
             buffer[received] = '\0';
-
-#ifdef DEBUG_BUILD
-            char clientIp[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIp, sizeof(clientIp));
-            std::cout << "Received data from client" << std::endl;
-            std::cout << "Client address: " << clientIp << ":" << clientPort << std::endl;
-            std::cout << "Data: " << buffer << std::endl;
-#endif
+            
             int clientIp = ntohl(clientAddr.sin_addr.s_addr);
             short clientPort = ntohs(clientAddr.sin_port);
+
+#ifdef DEBUG_BUILD
+            char ipString[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &(clientAddr.sin_addr), ipString, sizeof(clientIp));
+            std::cout << "Received data from client" << std::endl;
+            std::cout << "Client address: " << clientIp << ":" << clientPort << std::endl;
+            std::cout << "Bytes: " << received << std::endl;
+#endif
 
             long long clientId = (clientIp << sizeof(short) * 8) | clientPort;
 

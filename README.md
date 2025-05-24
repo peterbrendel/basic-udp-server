@@ -6,15 +6,21 @@ Listen to UDP datagrams and dispatch potentially heavy-weight process to workers
 Note: The current approach isn't fair and does not balance work across workers evenly
 
 ## Requirements
-```bash
-cmake
-clang | gcc
-```
+
+- cmake 3.25 or later
+- clang or gcc with c++20 support
+- (optional) Docker and docker-compose
 
 ## How to compile
-Hopefully
+Hopefully the bash script will help
 ```bash
-cmake . && cmake --build .
+./compile <flags>
+```
+
+### Compilation flags
+```
+release   # build in release mode
+clean     # clean cmake build
 ```
 
 ## Flags

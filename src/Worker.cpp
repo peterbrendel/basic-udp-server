@@ -1,8 +1,5 @@
 #include <Worker.hpp>
 #include <iostream>
-#include <thread>
-#include <iomanip>
-#include <syncstream>
 
 namespace Core {
     std::mutex Worker::logMutex;

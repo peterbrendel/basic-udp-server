@@ -1,4 +1,5 @@
 #include "ArgParser.hpp"
+#include <iostream>
 
 ArgParser::ArgParser()
 {
@@ -17,6 +18,7 @@ void ArgParser::parse(std::string flag, std::string value)
     if (it != flagHandlers.end()) {
         it->second(value);
     } else {
-        throw std::invalid_argument("Invalid argument: " + flag);
+        std::cerr << "Unknown flag: " << flag << std::endl;
+        exit(1);
     }
 }

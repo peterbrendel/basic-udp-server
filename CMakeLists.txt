@@ -15,8 +15,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add warnings to the compilation
 add_compile_options(-Wall -Wextra -Wpedantic)
 
+# Set the debug flags
+if(CMAKE_BUILD_TYPE MATCHES Release)
+    add_compile_options(-O3)
+else()
+    add_compile_options(-g)
+    add_definitions(-DDEBUG_BUILD)
+endif()
+
 # Include directories for headers
 include_directories(${SRC_DIR})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 # Create the executable
 add_executable(sparz ${SOURCES})

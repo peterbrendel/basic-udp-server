@@ -1,0 +1,9 @@
+build
+.vscode
+
+.git
+.dockerignore
+.gitignore
+
+*.notes
+*.md

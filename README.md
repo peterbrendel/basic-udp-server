@@ -9,7 +9,13 @@ Note: The current approach isn't fair and does not balance work across workers e
 
 - cmake 3.25 or later
 - clang or gcc with c++20 support
-- (optional) Docker and docker-compose
+- (optional) Docker
+
+## Docker
+```bash
+docker build . --tag sparz-server:latest
+docker run --rm sparz-server
+```
 
 ## How to compile
 Hopefully the bash script will help

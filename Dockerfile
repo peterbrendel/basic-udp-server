@@ -27,4 +27,4 @@ WORKDIR /app
 
 COPY --from=builder /app/build/Release/sparz ./sparz
 
-# ENTRYPOINT ["./sparz"]
+ENTRYPOINT ["./sparz", "-w", "4"]

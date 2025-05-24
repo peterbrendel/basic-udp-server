@@ -15,22 +15,21 @@ echo "Clients will be terminated gracefully on script exit."
 for ((i=1; i<=NUM_CLIENTS; i++))
 do
     echo "Starting client $i"
-    # store PID of the client in a file
+
     python3 client.py &
-    echo $! >> pids
+
+    pids+=($!)
 done
 
-trap cleanup INT TERM EXIT
+trap cleanup INT TERM
 
 cleanup() {
     echo "Cleaning up..."
-    if [ -f "pids" ]; then
-        while read pid; do
-            echo "Killing client with PID $pid"
-            kill $pid
-        done < pids
-        rm pids
-    fi
+
+    for pid in "${pids[@]}"; do
+        echo "Killing client with PID $pid"
+        kill -9 "$pid"
+    done
 
     exit 0
 }

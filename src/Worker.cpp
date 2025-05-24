@@ -20,13 +20,12 @@ namespace Core {
         std::unique_lock<std::mutex> taskLock(taskMutex);
         // If new client create a new queue and mutex for this clientId
         if (tasks.find(clientId) == tasks.end()) {
-            tasks[clientId] = std::queue<std::shared_ptr<std::vector<char>>>();
-            mutexes[clientId] = std::make_unique<std::mutex>();
+            tasks[clientId] = { std::make_unique<std::mutex>(), std::queue<std::shared_ptr<std::vector<char>>>() };
         }
 
         // Lock the mutex for this clientId and push data into the queue
-        std::unique_lock<std::mutex> queueLock(*mutexes[clientId]);
-        tasks[clientId].emplace(std::move(data));
+        std::unique_lock<std::mutex> queueLock(*tasks[clientId].first);
+        tasks[clientId].second.emplace(std::move(data));
 
         // Unlock the mutex automatically when going out of scope
     }
@@ -52,45 +51,50 @@ namespace Core {
     }
 
     void Worker::process() {
-        for (auto& [clientId, taskQueue] : tasks) {
-            // Process the tasks in the queue
-            std::unique_lock<std::mutex> lock(*mutexes[clientId]);
+        for (auto it = tasks.begin(); it != tasks.end(); ) {
+            auto& [clientId, task] = *it;
+            auto& [mutex, taskQueue] = task;
+
+            std::unique_lock<std::mutex> queueLock(*mutex);
+
+            if (taskQueue.empty()) {
+                std::unique_lock<std::mutex> taskLock(taskMutex);
+                it = tasks.erase(it);
+                continue;
+            }
+
             auto data = taskQueue.front();
             taskQueue.pop();
+            queueLock.unlock();
 
             auto threadId = std::this_thread::get_id();
             auto clock = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-            int ip = clientId & (2 << (sizeof(short) * 8 - 1));
-            short port = clientId >> sizeof(short) * 8;
+            int ip = clientId >> 16;
+            unsigned short port = clientId & 0xFFFF;
 
             std::unique_lock<std::mutex> logLock(logMutex);
-            std::cout << threadId << "\t| ";
+            std::cout << std::right << std::setw(15) << threadId << " | ";
             std::cout << std::put_time(std::localtime(&clock), "%Y-%m-%d %H:%M:%S") << " | ";
-            std::cout << IpToString(ip) << ":" << port << " | ";
-            std::cout << "payload size: " << data->size() << " bytes\t| ";
-            std::cout << "total bytes: " << totalBytes << "\t| ";
-            std::cout << "total packets: " << totalPackets << "\t| ";
-            std::cout << std::endl;
+            std::cout << std::right << std::setw(15) << IpToString(ip) << ":" << std::left << std::setw(5) << port << " | ";
+            std::cout << "incoming " << std::right << std::setw(4) << data->size() << " bytes | ";
+            std::cout << "total bytes: " << std::left << std::setw(12) << totalBytes << " | ";
+            std::cout << "total packets: " << std::left << std::setw(12) << totalPackets << '\n';
+            std::cout << std::flush;
             totalBytes += data->size();
             totalPackets++;
-            logLock.unlock();
-
-            std::unique_lock<std::mutex> taskLock(taskMutex);
-            if (taskQueue.empty()) {
-                tasks.erase(clientId);
-                mutexes.erase(clientId);
-            }
         }
     }
 
     std::string Worker::IpToString(int ip) {
         std::string ipStr;
+
         for (int i = 0; i < 4; ++i) {
             ipStr += std::to_string((ip >> (i * 8)) & 0xFF);
             if (i < 3) {
                 ipStr += ".";
             }
         }
+
         return ipStr;
     }
 }

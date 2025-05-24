@@ -17,8 +17,7 @@ namespace Core {
         void run();
     private:
         std::mutex taskMutex;
-        std::unordered_map<long long, std::queue<std::shared_ptr<std::vector<char>>>> tasks;
-        std::unordered_map<long long, std::unique_ptr<std::mutex>> mutexes;
+        std::unordered_map<long long, std::pair<std::unique_ptr<std::mutex>, std::queue<std::shared_ptr<std::vector<char>>>>> tasks;
         bool running = false;
 
         void process();

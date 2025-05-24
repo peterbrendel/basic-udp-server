@@ -86,8 +86,8 @@ namespace Core {
 
             buffer[received] = '\0';
             
-            int clientIp = ntohl(clientAddr.sin_addr.s_addr);
-            short clientPort = ntohs(clientAddr.sin_port);
+            int clientIp = clientAddr.sin_addr.s_addr;
+            unsigned short clientPort = clientAddr.sin_port;
 
 #ifdef DEBUG_BUILD
             char ipString[INET_ADDRSTRLEN];
@@ -100,6 +100,7 @@ namespace Core {
             long long clientId = (clientIp << sizeof(short) * 8) | clientPort;
 
             dispatch(clientId, buffer, received);
+            // std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
         close(serverSocket);

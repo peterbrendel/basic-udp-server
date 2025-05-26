@@ -12,21 +12,34 @@ namespace Core {
         for (short i = 0; i < workerCount; ++i) {
             workers.emplace_back(std::make_unique<Worker>());
         }
+
+        running = true;
     }
 
     Server::~Server()
     {
-        std::cout << "Attempting to stop server gracefully" << std::endl;
+        std::cout << "Attempting to stop server gracefully..." << std::endl;
         for (auto& worker : workers) {
             worker->stop();
         }
+
+        for (auto& thread : threads) {
+            if (thread.joinable()) {
+                thread.join();
+            }
+        }
+    }
+
+    void Server::stop()
+    {
+        running = false;
+        std::cout << "Server is stopping..." << std::endl;
     }
 
     void Server::run()
     {
         std::cout << "Server is running..." << std::endl;
 
-        std::vector<std::thread> threads;
         for (auto& worker : workers) {
             threads.emplace_back([&worker]() {
                 worker->run();
@@ -45,13 +58,6 @@ namespace Core {
 
             // buffer is destroyed but the data is still available in the worker
         });
-
-        for (auto& thread : threads) {
-            if (thread.joinable()) {
-                thread.join();
-            }
-        }
-
     }
 
     void Server::listen(std::function<void(long long clientId, const std::array<char, 1024>& buffer, size_t size)> dispatch)
@@ -77,9 +83,10 @@ namespace Core {
         socklen_t clientAddrLen = sizeof(clientAddr);
         std::array<char, 1024> buffer;
 
-        while (true) {
+        while (running) {
             ssize_t received = recvfrom(serverSocket, buffer.data(), buffer.size() - 1, 0, (sockaddr*)&clientAddr, &clientAddrLen);
             if (received < 0) {
+                if (!running) break;
                 std::cerr << "Failed to receive data" << std::endl;
                 continue;
             }

@@ -11,6 +11,18 @@ namespace Core {
         running = true;
     }
 
+    Worker::~Worker()
+    {
+        std::unique_lock<std::mutex> lock(logMutex);
+        std::cout << std::right << std::setw(15) << std::this_thread::get_id() << " | Stopping gracefully..." << std::endl;
+        lock.unlock();
+
+        flush();
+
+        lock.lock();
+        std::cout << std::right << std::setw(15) << std::this_thread::get_id() << " | Stopped." << std::endl;
+    }
+
     void Worker::assignTask(long long clientId, std::shared_ptr<std::vector<char>> data)
     {
         if (running == false) {
@@ -32,11 +44,7 @@ namespace Core {
 
     void Worker::stop()
     {
-        std::cout << "Gracefully stopping worker..." << std::endl;
         running = false;
-        process();
-
-        std::cout << "Worker stopped." << std::endl;
     }
 
     void Worker::run() {
@@ -82,6 +90,16 @@ namespace Core {
             std::cout << std::flush;
             totalBytes += data->size();
             totalPackets++;
+        }
+    }
+
+    void Worker::flush() {
+        std::unique_lock<std::mutex> lock(logMutex);
+        std::cout << std::right << std::setw(15) << std::this_thread::get_id() << " | Flushing remaining " << tasks.size() << " tasks..." << std::endl;
+        lock.unlock();
+
+        while (tasks.size() > 0) {
+            process();
         }
     }
 

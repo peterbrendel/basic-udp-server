@@ -11,7 +11,7 @@ namespace Core {
     class Worker {
     public:
         Worker();
-        ~Worker() = default;
+        ~Worker();
         void assignTask(long long clientId, std::shared_ptr<std::vector<char>> data);
         void stop();
         void run();
@@ -21,6 +21,7 @@ namespace Core {
         bool running = false;
 
         void process();
+        void flush();
         std::string IpToString(int ip);
 
         static std::mutex logMutex;
